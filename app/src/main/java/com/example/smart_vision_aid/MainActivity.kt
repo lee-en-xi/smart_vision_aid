@@ -1,80 +1,116 @@
 package com.example.smart_vision_aid
 
+import UploadScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.smart_vision_aid.presentation.auth.LoginScreen
-import com.example.smart_vision_aid.presentation.auth.RegisterScreen
-import com.example.smart_vision_aid.ui.theme.Smart_Vision_AidTheme
-import com.google.firebase.auth.FirebaseAuth
-import dagger.hilt.android.AndroidEntryPoint
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import com.example.smart_vision_aid.ui.theme.SmartVisionAidTheme
+import androidx.navigation.navArgument
 
-@AndroidEntryPoint
+
+
+
+
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         setContent {
-            Smart_Vision_AidTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
-                ) {
-                    val currentUser = FirebaseAuth.getInstance().currentUser
-                    if (currentUser != null) {
-                        // If user is logged in, show main content or camera
-                        WelcomeScreen(onStartClick = { /* TODO: Navigate to main content */ })
-                    } else {
-                        // If user is not logged in, show login screen
-                        LoginScreen(onLoginSuccess = { /* Handle after login success */ })
-                    }
-                }
+            SmartVisionAidTheme {
+                AppNavigation()
             }
         }
     }
 }
 
 @Composable
-fun WelcomeScreen(onStartClick: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = "Smart Vision Aid",
-            fontSize = 28.sp,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Button(
-            onClick = onStartClick,
-            modifier = Modifier
-                .height(60.dp)
-                .width(220.dp)
-        ) {
-            Text(text = "Start", fontSize = 18.sp)
+fun AppNavigation() {
+    val navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "home") {
+        // Define your composable destinations here
+
+        // Home Screen
+        composable("home") {
+            HomeScreen(navController = navController)
         }
+
+        // Camera Screen
+        composable("camera") {
+            CameraScreen(navController = navController)
+        }
+
+        // Processing Screen
+        composable("processing/{text}") { backStackEntry ->
+            ProcessingScreen(
+                navController = navController,
+                extractedText = backStackEntry.arguments?.getString("text") ?: ""
+            )
+        }
+
+        // Translation Screen
+        composable("translation/{text}") { backStackEntry ->
+            TranslationScreen(
+                navController = navController,
+                textToTranslate = backStackEntry.arguments?.getString("text") ?: ""
+            )
+        }
+
+        // Audio Control Screen
+        composable("audio/{text}") { backStackEntry ->
+            AudioControlScreen(
+                textToSpeak = backStackEntry.arguments?.getString("text") ?: ""
+            )
+        }
+        composable("upload/{uri}", arguments = listOf(navArgument("uri") { defaultValue = "" })) {
+            UploadScreen(
+                navController = navController,
+                uriString = it.arguments?.getString("uri") ?: ""
+            )
+        }
+
+        composable("edit/{uri}",
+            arguments = listOf(navArgument("uri") { defaultValue = "" })) {
+            EditScreen(
+                navController = navController,
+                imageUri = it.arguments?.getString("uri") ?: ""
+            )
+        }
+
+        composable("rotate/{uri}",
+            arguments = listOf(navArgument("uri") { defaultValue = ""  })) {
+            RotateScreen(
+                navController = navController,
+                imageUri = it.arguments?.getString("uri") ?: ""
+            )
+        }
+
+        composable(
+            "rectify/{imagePath}",
+            arguments = listOf(navArgument("imagePath") { defaultValue = "" })
+        ) { backStackEntry ->
+            val imagePath = backStackEntry.arguments?.getString("imagePath") ?: ""
+            RectifyScreen(
+                navController = navController,
+                imagePath = imagePath
+            )
+        }
+
+
     }
 }
 
 @Preview(showBackground = true)
 @Composable
-fun WelcomePreview() {
-    Smart_Vision_AidTheme {
-        WelcomeScreen(onStartClick = {})
+fun PreviewMainActivity() {
+    SmartVisionAidTheme {
+        AppNavigation()
     }
 }

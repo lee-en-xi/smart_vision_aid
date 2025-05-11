@@ -13,7 +13,7 @@
       "attributes": [],
       "versionCode": 0,
       "versionName": "",
-      "outputFile": "sdk-debug-androidTest.apk"
+      "outputFile": "opencv-debug-androidTest.apk"
     }
   ],
   "elementType": "File"

@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "org.opencv.test.sdk-merged_res-3:/values_values.arsc.flat",
+            "outputFile": "org.opencv.test.opencv-merged_res-3:/values_values.arsc.flat",
             "map": [
                 {
                     "source": "C:\\Users\\user\\AndroidStudioProjects\\Smart_Vision_Aid\\sdk\\build\\intermediates\\packaged_res\\debug\\values\\values.xml",

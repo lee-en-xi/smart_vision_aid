@@ -1,5 +1,5 @@
-org.opencv.test.sdk-androidTest-0 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\generated\res\resValues\androidTest\debug
-org.opencv.test.sdk-mergeDebugAndroidTestResources-1 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
-org.opencv.test.sdk-mergeDebugAndroidTestResources-2 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
-org.opencv.test.sdk-merged_res-3 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\merged_res\debugAndroidTest
-org.opencv.test.sdk-packaged_res-4 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\packaged_res\debug
+org.opencv.test.opencv-androidTest-0 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\generated\res\resValues\androidTest\debug
+org.opencv.test.opencv-mergeDebugAndroidTestResources-1 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
+org.opencv.test.opencv-mergeDebugAndroidTestResources-2 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
+org.opencv.test.opencv-merged_res-3 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\merged_res\debugAndroidTest
+org.opencv.test.opencv-packaged_res-4 C:\Users\user\AndroidStudioProjects\Smart_Vision_Aid\sdk\build\intermediates\packaged_res\debug

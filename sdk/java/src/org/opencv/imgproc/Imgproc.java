@@ -5,6 +5,8 @@ package org.opencv.imgproc;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.jetbrains.annotations.NotNull;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
@@ -10516,4 +10518,11 @@ public static Size getTextSize(String text, int fontFace, double fontScale, int 
     private static native void HoughLinesWithAccumulator_4(long image_nativeObj, long lines_nativeObj, double rho, double theta, int threshold);
 private static native double[] n_getTextSize(String text, int fontFace, double fontScale, int thickness, int[] baseLine);
 
+    public static double arcLength(@NotNull MatOfPoint contour, boolean b) {
+        return 0;
+    }
+
+    public static void approxPolyDP(@NotNull MatOfPoint2f matOfPoint2f, @NotNull MatOfPoint approx, double epsilon, boolean b) {
+
+    }
 }
