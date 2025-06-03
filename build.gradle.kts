@@ -10,6 +10,8 @@ buildscript {
     repositories {
         google()
         mavenCentral()
+        maven { url = uri("https://jitpack.io") }
+        jcenter()
     }
     dependencies {
         classpath("com.android.tools.build:gradle:8.2.2")  // Match plugin version

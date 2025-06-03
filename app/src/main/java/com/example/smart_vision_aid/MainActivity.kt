@@ -1,6 +1,5 @@
 package com.example.smart_vision_aid
 
-import UploadScreen
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -10,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -93,13 +93,23 @@ fun AppNavigation() {
         }
 
         composable(
-            "rectify/{imagePath}",
-            arguments = listOf(navArgument("imagePath") { defaultValue = "" })
+            "crop/{uri}",
+            arguments = listOf(navArgument("uri") { defaultValue = "" })
         ) { backStackEntry ->
-            val imagePath = backStackEntry.arguments?.getString("imagePath") ?: ""
-            RectifyScreen(
+            val imagePath = backStackEntry.arguments?.getString("uri") ?: ""
+            CropScreen(
                 navController = navController,
-                imagePath = imagePath
+                imagePath = imagePath  // Passing the URI to the CropScreen
+            )
+        }
+
+        // Perspective Screen
+        composable("perspective/{uri}",
+            arguments = listOf(navArgument("uri") { defaultValue = "" })
+        ) {
+            PerspectiveScreen(
+                navController = navController,
+                imagePath = it.arguments?.getString("uri") ?: ""
             )
         }
 
