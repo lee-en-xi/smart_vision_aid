@@ -41,23 +41,25 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.5"
     }
-    packaging {
+    packagingOptions {
         resources {
-            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            // Exclude duplicate files (e.g., META-INF/INDEX.LIST)
+            excludes += "/META-INF/INDEX.LIST"
         }
     }
 }
 
+
 dependencies {
     implementation(project(":opencv"))
-    // Core
+
+    // Core dependencies
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.8.2")
     implementation("androidx.navigation:navigation-compose:2.7.5")
-    implementation("com.vanniktech:android-image-cropper:4.6.0")
 
-    // Compose
+    // Compose dependencies
     implementation(platform("androidx.compose:compose-bom:2023.10.01"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -65,41 +67,42 @@ dependencies {
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
 
-    // CameraX
+    // Retrofit for network calls
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // CameraX dependencies
     implementation("androidx.camera:camera-core:1.3.0")
     implementation("androidx.camera:camera-camera2:1.3.0")
     implementation("androidx.camera:camera-lifecycle:1.3.0")
     implementation("androidx.camera:camera-view:1.3.0")
 
-    // ML Kit
+    // ML Kit dependencies
     implementation("com.google.mlkit:text-recognition:16.0.0")
     implementation("com.google.mlkit:language-id:17.0.4")
-    implementation("com.google.mlkit:translate:17.0.1")
+    implementation("com.google.cloud:google-cloud-translate:2.24.0")
     implementation("com.google.accompanist:accompanist-permissions:0.31.5-beta")
 
-    // Hilt
+    // Hilt dependencies
     implementation("com.google.dagger:hilt-android:2.48")
-    implementation ("com.rmtheis:tess-two:9.1.0")
+    implementation("com.rmtheis:tess-two:9.1.0")
     kapt("com.google.dagger:hilt-compiler:2.48")
 
-    // Coil Core
+    // Coil dependencies for image loading
     implementation("io.coil-kt:coil:2.4.0")
-
-    // Coil for Jetpack Compose
     implementation("io.coil-kt:coil-compose:2.4.0")
 
-    // Kotlin coroutines (for background processing)
+    // Kotlin Coroutines dependencies
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // Coil for image loading (optional but recommended)
-    implementation("io.coil-kt:coil-compose:2.5.0")
-
-    // AndroidX ExifInterface (for image orientation handling)
+    // ExifInterface (image orientation handling)
     implementation("androidx.exifinterface:exifinterface:1.3.6")
-    implementation ("com.google.zxing:core:3.5.1")
 
-    // Testing
+    // ZXing (barcode scanning)
+    implementation("com.google.zxing:core:3.5.1")
+
+    // Testing dependencies
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")

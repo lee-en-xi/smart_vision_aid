@@ -1,6 +1,8 @@
 package com.example.smart_vision_aid
 
+import android.net.Uri
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -15,9 +17,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.smart_vision_aid.ui.theme.SmartVisionAidTheme
 import androidx.navigation.navArgument
-
-
-
+import com.example.smart_vision_aid.cropUtils.VoiceUploadScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -96,12 +96,13 @@ fun AppNavigation() {
             "crop/{uri}",
             arguments = listOf(navArgument("uri") { defaultValue = "" })
         ) { backStackEntry ->
-            val imagePath = backStackEntry.arguments?.getString("uri") ?: ""
-            CropScreen(
+            val uriString = backStackEntry.arguments?.getString("uri") ?: ""
+            CropScreenNew(
                 navController = navController,
-                imagePath = imagePath  // Passing the URI to the CropScreen
+                imageUri = Uri.parse(uriString) // Parse the URI string into a Uri object
             )
         }
+
 
         // Perspective Screen
         composable("perspective/{uri}",
@@ -113,6 +114,9 @@ fun AppNavigation() {
             )
         }
 
+        composable("voice_upload") {
+           VoiceUploadScreen(navController = navController)
+        }
 
     }
 }
