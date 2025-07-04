@@ -1,0 +1,29 @@
+package com.example.smart_vision_aid.cropUtils
+
+import androidx.compose.ui.geometry.Offset
+import kotlin.math.*
+
+private const val Eps: Float = 2.4414062E-4f
+
+public fun Float.eq0(): Boolean = abs(this) <= Eps
+public infix fun Float.eq(v: Float): Boolean = abs(v - this) <= Eps
+public fun Offset.eq(other: Offset) = x.eq(other.x) && y.eq(other.y)
+
+public fun lerp(a: Float, b: Float, p: Float): Float = a + p * (b - a)
+public fun lerp(a: Int, b: Int, p: Float) = lerp(a.toFloat(), b.toFloat(), p).roundToInt()
+
+public fun lerpAngle(a: Int, b: Int, p: Float): Int {
+    val angleDist = (2 * ((b - a) % 360) % 360 - (b - a) % 360)
+    return (a + angleDist * p).roundToInt()
+}
+
+public fun Int.next90() = (this + 90).angleRange()
+public fun Int.prev90() = (this - 90).angleRange()
+public fun Int.angleRange(): Int {
+    val angle = (this % 360 + 360) % 360
+    return if (angle <= 180) angle else angle - 360
+}
+
+fun Float.alignDown(alignment: Int): Float = floor(this / alignment) * alignment
+fun Float.alignUp(alignment: Int): Float = ceil(this / alignment) * alignment
+fun Float.align(alignment: Int): Float = round(this / alignment) * alignment
