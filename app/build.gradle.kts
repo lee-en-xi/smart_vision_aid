@@ -80,8 +80,14 @@ dependencies {
     // ML Kit dependencies
     implementation("com.google.mlkit:text-recognition:16.0.0")
     implementation("com.google.mlkit:language-id:17.0.4")
-    implementation("com.google.cloud:google-cloud-translate:2.24.0")
+    implementation ("com.google.mlkit:translate:17.0.3")
     implementation("com.google.accompanist:accompanist-permissions:0.31.5-beta")
+    implementation ("com.squareup.okhttp3:okhttp:4.10.0")
+    implementation ("com.google.code.gson:gson:2.10.1")
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
+    implementation ("com.google.mlkit:translate:17.0.2")
+    implementation ("com.google.android.gms:play-services-mlkit-text-recognition:19.0.0")
+    implementation ("org.json:json:20210307")
 
     // Hilt dependencies
     implementation("com.google.dagger:hilt-android:2.48")

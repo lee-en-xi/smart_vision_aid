@@ -44,38 +44,45 @@ fun UploadScreen(navController: NavController, uriString: String) {
     }
 }
 
-// Convert Uri to a file path by saving to cache
-//private fun uriToFilePath(context: Context, uri: Uri): String? {
-//    try {
-//        // Create a temporary file in cache
-//        val file = File(context.cacheDir, "captured.jpg")
-//
-//        // Copy Uri content to the file
-//        context.contentResolver.openInputStream(uri)?.use { input ->
-//            FileOutputStream(file).use { output ->
-//                input.copyTo(output)
-//            }
-//        }
-//
-//        return file.absolutePath
-//    } catch (e: IOException) {
-//        e.printStackTrace()
-//        return null
-//    }
-//}
-
 private fun uriToFilePath(context: Context, uri: Uri): String? {
     return try {
-        val file = File(context.cacheDir, "uploaded_${System.currentTimeMillis()}.jpg")
+        // Clean up old files in cache dir (optional but recommended)
+        cleanUpCacheDir(context, "uploaded_")
+
+        // Create a uniquely named file
+        val file = File.createTempFile(
+            "uploaded_${System.currentTimeMillis()}_",
+            ".jpg",
+            context.cacheDir
+        ).apply { deleteOnExit() }
+
         context.contentResolver.openInputStream(uri)?.use { input ->
             FileOutputStream(file).use { output ->
                 input.copyTo(output)
+                output.flush() // Ensure all bytes are written
             }
         }
-        Log.d("UploadScreen", "File saved at: ${file.absolutePath}, exists: ${file.exists()}")
+
+        Log.d("UploadScreen", "File saved at: ${file.absolutePath}")
         file.absolutePath
-    } catch (e: IOException) {
-        e.printStackTrace()
+    } catch (e: Exception) {
+        Log.e("UploadScreen", "Failed to save file", e)
         null
+    }
+}
+
+/**
+ * Deletes all files in cache dir with the given prefix.
+ */
+private fun cleanUpCacheDir(context: Context, prefix: String) {
+    try {
+        context.cacheDir.listFiles()?.forEach { file ->
+            if (file.name.startsWith(prefix)) {
+                file.delete()
+                Log.d("UploadScreen", "Deleted old file: ${file.name}")
+            }
+        }
+    } catch (e: Exception) {
+        Log.e("UploadScreen", "Failed to clean cache", e)
     }
 }

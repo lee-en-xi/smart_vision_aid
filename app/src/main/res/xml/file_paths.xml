@@ -7,4 +7,5 @@
 
     <cache-path name="cached_images" path="." />
     <external-cache-path name="external_cache" path="." />
+
 </paths>

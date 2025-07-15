@@ -17,7 +17,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.example.smart_vision_aid.ui.theme.SmartVisionAidTheme
 import androidx.navigation.navArgument
-import com.example.smart_vision_aid.cropUtils.VoiceUploadScreen
+import org.json.JSONArray
+import java.net.URLDecoder
+import OcrResultItem
+import androidx.activity.compose.BackHandler
+import androidx.compose.ui.platform.LocalContext
+import com.google.mlkit.nl.translate.TranslateLanguage
 
 
 class MainActivity : ComponentActivity() {
@@ -47,28 +52,97 @@ fun AppNavigation() {
             CameraScreen(navController = navController)
         }
 
-        // Processing Screen
-        composable("processing/{text}") { backStackEntry ->
-            ProcessingScreen(
-                navController = navController,
-                extractedText = backStackEntry.arguments?.getString("text") ?: ""
-            )
-        }
 
         // Translation Screen
-        composable("translation/{text}") { backStackEntry ->
+        composable(
+            "translation/{textToTranslate}/{ocrData}/{sourceLanguage}",
+            arguments = listOf(
+                navArgument("textToTranslate") { type = NavType.StringType },
+                navArgument("ocrData") { type = NavType.StringType },
+                navArgument("sourceLanguage") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val textToTranslate = URLDecoder.decode(
+                backStackEntry.arguments?.getString("textToTranslate") ?: "",
+                "UTF-8"
+            )
+            val ocrData = URLDecoder.decode(
+                backStackEntry.arguments?.getString("ocrData") ?: "",
+                "UTF-8"
+            )
+            val sourceLanguage = URLDecoder.decode(
+                backStackEntry.arguments?.getString("sourceLanguage") ?: TranslateLanguage.ENGLISH,
+                "UTF-8"
+            )
+
+            // Parse ocrData to List<OcrResultItem>
+            val ocrResults = try {
+                val jsonArray = JSONArray(ocrData)
+                (0 until jsonArray.length()).map { i ->
+                    val item = jsonArray.getJSONObject(i)
+                    OcrResultItem(
+                        text = item.getString("text"),
+                        coordinates = (0 until item.getJSONArray("coordinates").length())
+                            .map { j -> item.getJSONArray("coordinates").getDouble(j).toFloat() }
+                    )
+                }
+            } catch (e: Exception) {
+                emptyList()
+            }
+
             TranslationScreen(
                 navController = navController,
-                textToTranslate = backStackEntry.arguments?.getString("text") ?: ""
+                textToTranslate = textToTranslate,
+                ocrResults = ocrResults,
+                sourceLanguage = sourceLanguage
             )
         }
 
-        // Audio Control Screen
-        composable("audio/{text}") { backStackEntry ->
-            AudioControlScreen(
-                textToSpeak = backStackEntry.arguments?.getString("text") ?: ""
+        // Processing Screen
+        composable(
+            "processing/{combinedText}/{ocrData}/{targetLanguage}",
+            arguments = listOf(
+                navArgument("combinedText") { type = NavType.StringType },
+                navArgument("ocrData") { type = NavType.StringType },
+                navArgument("targetLanguage") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val combinedText = URLDecoder.decode(
+                backStackEntry.arguments?.getString("combinedText") ?: "",
+                "UTF-8"
+            )
+            val ocrDataJson = URLDecoder.decode(
+                backStackEntry.arguments?.getString("ocrData") ?: "",
+                "UTF-8"
+            )
+            val targetLanguage = URLDecoder.decode(
+                backStackEntry.arguments?.getString("targetLanguage") ?: TranslateLanguage.ENGLISH,
+                "UTF-8"
+            )
+
+            // Parse OCR data back to objects
+            val ocrResults = try {
+                val jsonArray = JSONArray(ocrDataJson)
+                (0 until jsonArray.length()).map { i ->
+                    val item = jsonArray.getJSONObject(i)
+                    OcrResultItem(
+                        text = item.getString("text"),
+                        coordinates = (0 until item.getJSONArray("coordinates").length())
+                            .map { j -> item.getJSONArray("coordinates").getDouble(j).toFloat() }
+                    )
+                }
+            } catch (e: Exception) {
+                emptyList()
+            }
+
+            ProcessingScreen(
+                navController = navController,
+                combinedText = combinedText,
+                ocrResults = ocrResults,
+                sourceLanguage = targetLanguage // Pass as sourceLanguage to ProcessingScreen
             )
         }
+
         composable("upload/{uri}", arguments = listOf(navArgument("uri") { defaultValue = "" })) {
             UploadScreen(
                 navController = navController,
@@ -76,11 +150,11 @@ fun AppNavigation() {
             )
         }
 
-        composable("edit/{uri}",
-            arguments = listOf(navArgument("uri") { defaultValue = "" })) {
+        composable("edit/{uri}") { backStackEntry ->
+            val imageUri = backStackEntry.arguments?.getString("uri") ?: ""
             EditScreen(
                 navController = navController,
-                imageUri = it.arguments?.getString("uri") ?: ""
+                imageUri = imageUri
             )
         }
 
@@ -114,9 +188,6 @@ fun AppNavigation() {
             )
         }
 
-        composable("voice_upload") {
-           VoiceUploadScreen(navController = navController)
-        }
 
     }
 }

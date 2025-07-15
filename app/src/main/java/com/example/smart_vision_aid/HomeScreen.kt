@@ -73,13 +73,6 @@ fun HomeScreen(navController: NavController) {
             color = GreenSecondary
         )
 
-        Spacer(Modifier.height(24.dp))
-
-        HomeButton(
-            text = "Upload your voice",
-            onClick = { navController.navigate("voice_upload") },
-            color = GreenTertiary
-        )
 
     }
 

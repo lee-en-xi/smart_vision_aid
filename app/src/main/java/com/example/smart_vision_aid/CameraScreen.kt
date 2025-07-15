@@ -196,7 +196,6 @@ fun CameraScreen(navController: NavController) {
     var showPermissionDialog by remember { mutableStateOf(false) }
     val imageCapture = remember { ImageCapture.Builder().build() }
 
-    // Initialize OpenCV (optional if needed later)
     val openCvInitialized = remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
         openCvInitialized.value = OpenCVLoader.initDebug()

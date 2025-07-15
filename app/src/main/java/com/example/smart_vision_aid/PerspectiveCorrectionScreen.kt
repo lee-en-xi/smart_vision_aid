@@ -203,10 +203,10 @@ fun PerspectiveScreen(
                 )
 
                 adjustedCorners.forEach { point ->
-                    drawCircle(Color.Red, radius = 20f, center = point)
+                    drawCircle(Color.Red, radius = 65f, center = point)
                     drawCircle(
                         Color.White.copy(alpha = 0.5f),
-                        radius = 20f,
+                        radius = 65f,
                         center = point,
                         style = Stroke(width = 3f)
                     )

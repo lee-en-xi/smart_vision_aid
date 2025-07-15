@@ -1,6 +1,5 @@
 package com.example.smart_vision_aid
 
-import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
@@ -17,19 +16,14 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import coil.compose.rememberAsyncImagePainter
 import coil.imageLoader
 import coil.request.ImageRequest
 import coil.size.Size
-import com.example.smart_vision_aid.ui.theme.GreenPrimary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import com.example.smart_vision_aid.ui.theme.GreenSecondary
 import java.util.*
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialogDefaults.containerColor
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,15 +31,21 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.*
-import org.opencv.imgproc.Imgproc
-import org.opencv.android.Utils
-import org.opencv.core.CvType
-import org.opencv.core.MatOfPoint2f
-import org.opencv.core.MatOfPoint
 import java.io.File
 import java.io.FileOutputStream
-import com.example.smart_vision_aid.helper.OcrHelper
 import kotlinx.coroutines.CoroutineScope
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import org.opencv.BuildConfig
+import java.io.ByteArrayOutputStream
+import OcrResultItem
+import com.google.mlkit.nl.translate.TranslateLanguage
+import org.json.JSONArray
+import java.util.concurrent.TimeUnit
 
 
 //@Composable
@@ -277,8 +277,7 @@ fun EditScreen(navController: NavController, imageUri: String) {
     var bitmapState by remember { mutableStateOf<Bitmap?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
-    var isTessInitialized by remember { mutableStateOf(false) }
-    var tessInitializationError by remember { mutableStateOf<String?>(null) }
+    var apiUrl by remember { mutableStateOf("http://192.168.0.143:5000/api/ocr") } // Default localhost for emulator
 
     LaunchedEffect(Unit) {
         // Initialize OpenCV
@@ -290,30 +289,7 @@ fun EditScreen(navController: NavController, imageUri: String) {
             false
         }
 
-        // Initialize Tesseract
-        try {
-            OcrHelper.initTesseract(context)
-            isTessInitialized = true
-        } catch (e: Exception) {
-            tessInitializationError = "Retry failed: ${e.message}"
-        }
-
-
-        // Initialize Tesseract in background
-        withContext(Dispatchers.IO) {
-            try {
-                OcrHelper.initTesseract(context)
-                isTessInitialized = true
-                Log.d("EditScreen", "Tesseract initialized successfully")
-            } catch (e: Exception) {
-                tessInitializationError = "OCR init failed: ${e.message}"
-                Log.e("EditScreen", "Tesseract initialization failed", e)
-            }
-        }
-    }
-
-    // Load image
-    LaunchedEffect(uri) {
+        // Load image
         try {
             val request = ImageRequest.Builder(context)
                 .data(uri)
@@ -334,7 +310,7 @@ fun EditScreen(navController: NavController, imageUri: String) {
     }
 
     // Show loading/initialization states
-    if (isLoading || !isOpenCvLoaded || !isTessInitialized) {
+    if (isLoading || !isOpenCvLoaded) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -342,24 +318,6 @@ fun EditScreen(navController: NavController, imageUri: String) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Show initialization errors
-            if (tessInitializationError != null) {
-                Text(
-                    text = tessInitializationError!!,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(Modifier.height(16.dp))
-                Button(onClick = {
-                    // Retry initialization
-                    tessInitializationError = null
-                    isTessInitialized = false
-                }) {
-                    Text("Retry OCR Initialization")
-                }
-                return@Column
-            }
-
             // Show loading states
             CircularProgressIndicator()
             Spacer(Modifier.height(16.dp))
@@ -367,7 +325,6 @@ fun EditScreen(navController: NavController, imageUri: String) {
             val loadingText = buildString {
                 if (isLoading) append("Loading image... ")
                 if (!isOpenCvLoaded) append("Initializing OpenCV... ")
-                if (!isTessInitialized) append("Initializing OCR... ")
             }
 
             Text(loadingText.trim())
@@ -400,6 +357,18 @@ fun EditScreen(navController: NavController, imageUri: String) {
                 text = errorMessage!!,
                 color = MaterialTheme.colorScheme.error,
                 modifier = Modifier.padding(16.dp)
+            )
+        }
+
+        // Server URL Input (for debugging)
+        if (BuildConfig.DEBUG) {
+            OutlinedTextField(
+                value = apiUrl,
+                onValueChange = { apiUrl = it },
+                label = { Text("OCR API URL") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
             )
         }
 
@@ -483,18 +452,99 @@ fun EditScreen(navController: NavController, imageUri: String) {
                     processingState = "Processing..."
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            val processedBitmap = bitmapState?.let {
-                                DocumentScanHelper.enhanceBitmap(it)
-                            } ?: throw Exception("No image available")
+                            // Convert bitmap to byte array
+                            val byteArrayOutputStream = ByteArrayOutputStream()
+                            bitmapState?.compress(
+                                Bitmap.CompressFormat.JPEG,
+                                90,
+                                byteArrayOutputStream
+                            )
+                            val imageBytes = byteArrayOutputStream.toByteArray()
 
-                            val text = OcrHelper.performOCR(processedBitmap)
-                            withContext(Dispatchers.Main) {
-                                navController.navigate("processing/${Uri.encode(text)}")
+                            // Create multipart request
+                            val requestBody = MultipartBody.Builder()
+                                .setType(MultipartBody.FORM)
+                                .addFormDataPart(
+                                    "file",
+                                    "image.jpg",
+                                    imageBytes.toRequestBody("image/jpeg".toMediaType())
+                                )
+                                .build()
+
+                            // Create request
+                            val request = Request.Builder()
+                                .url(apiUrl)
+                                .post(requestBody)
+                                .build()
+
+                            // Execute request
+                            val client = OkHttpClient.Builder()
+                                .connectTimeout(50, TimeUnit.SECONDS)
+                                .readTimeout(180, TimeUnit.SECONDS)
+                                .writeTimeout(180, TimeUnit.SECONDS)
+                                .build()
+                            val response = client.newCall(request).execute()
+
+                            if (response.isSuccessful) {
+                                val responseBody = response.body?.string()
+                                val jsonResponse = JSONObject(responseBody ?: "")
+
+                                if (jsonResponse.getBoolean("success")) {
+                                    val result = jsonResponse.getJSONArray("result")
+                                    val ocrResults = mutableListOf<OcrResultItem>()
+
+                                    // Extract all OCR results with text and coordinates
+                                    for (i in 0 until result.length()) {
+                                        val item = result.getJSONObject(i)
+                                        val text = item.getString("text")
+                                        val coordinates = mutableListOf<Float>()
+
+                                        // Extract coordinates if available
+                                        if (item.has("coordinates")) {
+                                            val coordsArray = item.getJSONArray("coordinates")
+                                            for (j in 0 until coordsArray.length()) {
+                                                coordinates.add(coordsArray.getDouble(j).toFloat())
+                                            }
+                                        }
+
+                                        ocrResults.add(OcrResultItem(
+                                            text = text,
+                                            coordinates = coordinates
+                                        ))
+                                    }
+
+                                    // Filter out empty text results
+                                    val validResults = ocrResults.filter { it.text.isNotBlank() }
+
+                                    withContext(Dispatchers.Main) {
+                                        val editRoute = "edit/${Uri.encode(imageUri)}"
+                                        // Pass the full OCR results and combined text with default language
+                                        navController.navigate(
+                                            "processing/${
+                                                Uri.encode(validResults.joinToString("\n") { it.text })
+                                            }/${
+                                                Uri.encode(JSONArray(validResults.map { it.toJsonObject() }).toString())
+                                            }/${
+                                                Uri.encode(TranslateLanguage.ENGLISH)  // Add default language
+                                            }"
+                                        ){
+                                            // Pop up to and including the current edit screen
+                                            popUpTo(editRoute) { inclusive = true }
+                                            // Launch as a new single top instance
+                                            launchSingleTop = true
+                                        }
+                                    }
+                                } else {
+                                    throw Exception(jsonResponse.getString("error"))
+                                }
+                            } else {
+                                throw Exception("Server error: ${response.code}")
                             }
                         } catch (e: Exception) {
                             withContext(Dispatchers.Main) {
                                 errorMessage = "OCR failed: ${e.message}"
                                 processingState = "Processing Failed"
+                                Log.e("EditScreen", "OCR API error", e)
                             }
                         }
                     }
